@@ -24,6 +24,9 @@ namespace BattleArena
         private int currentEnemyIndex = 0;
         private Character currentEnemy;
 
+        
+
+
         /// <summary>
         /// Function that starts the main game loop
         /// </summary>
@@ -36,6 +39,7 @@ namespace BattleArena
         /// </summary>
         public void Start()
         {
+            
         }
 
         /// <summary>
@@ -119,7 +123,8 @@ namespace BattleArena
         /// </summary>
         void GetPlayerName()
         {
-
+            Console.WriteLine("Welcome To FightCLub!!" "First Rule of fight club dont talk about fight club");
+            Console.WriteLine("")
         }
 
         /// <summary>
@@ -171,6 +176,7 @@ namespace BattleArena
         /// </summary>
         void CheckBattleResults()
         {
+            
         }
 
     }
