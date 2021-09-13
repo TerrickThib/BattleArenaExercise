@@ -288,6 +288,7 @@ namespace BattleArena
         /// </summary>
         public void Battle(ref Character player, ref Character goblin)
         {
+            string fightResult = "No Contest";
             
             while(player.health > 0 && goblin.health > 0)
             {
@@ -307,6 +308,16 @@ namespace BattleArena
 
                 Console.ReadKey(true);
                 Console.Clear();
+            }
+
+            if(player.health < 0 && goblin.health <= 0)
+            {
+                fightResult = "Draw";
+            }
+
+            else if (player.health > 0)
+            {
+                fightResult = player.name;
             }
         }
         /// <summary>
