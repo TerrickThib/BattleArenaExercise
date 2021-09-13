@@ -43,15 +43,12 @@ namespace BattleArena
         /// </summary>
         public void Run()
         {                        
-          Start();
+            Start();
+            DisplayMainMenu();
             while (!gameOver)
             {
-                DisplayMainMenu();
-                GetPlayerName();
-                CharacterSelection();
-                Console.Clear();
-                Battle(ref player, ref goblin);
-                End();
+                Update();
+               
             } 
         }
 
@@ -98,7 +95,12 @@ namespace BattleArena
         /// </summary>
         public void Update()
         {
-            
+            GetPlayerName();
+            CharacterSelection();
+            Console.Clear();
+            Battle(ref player, ref goblin);
+
+            End();
         }
 
         /// <summary>
@@ -286,29 +288,42 @@ namespace BattleArena
         /// </summary>
         public void Battle(ref Character player, ref Character goblin)
         {
-            //Shows Players stats
-            DisplayStats(player);
             
-            //Shows enemys stats
-            DisplayStats(goblin);
-            
-            //Character Attacks enemy
-            float damageTaken = Attack(ref player, ref goblin);
-            Console.WriteLine(goblin.name + " has taken " + damageTaken);
+            while(player.health > 0 && goblin.health > 0)
+            {
+                //Shows Players stats
+                DisplayStats(player);
 
-            //Enemy Attacks Player
-            damageTaken = Attack(ref goblin, ref player);
-            Console.WriteLine(player.name + " has taken " + damageTaken);
-            
+                //Shows enemys stats
+                DisplayStats(goblin);
+
+                //Character Attacks enemy
+                float damageTaken = Attack(ref player, ref goblin);
+                Console.WriteLine(goblin.name + " has taken " + damageTaken);
+
+                //Enemy Attacks Player
+                damageTaken = Attack(ref goblin, ref player);
+                Console.WriteLine(player.name + " has taken " + damageTaken);
+
+                Console.ReadKey(true);
+                Console.Clear();
+            }
         }
-
         /// <summary>
         /// Checks to see if either the player or the enemy has won the current battle.
         /// Updates the game based on who won the battle..
         /// </summary>
         void CheckBattleResults()
         {
-            
+            if(goblin.health <= 0)
+            {
+                Console.WriteLine("Goblin has fainted. ");
+            }
+            else if(player.health <= 0)
+            {
+                Console.WriteLine("You Fainted Club Invite revoked!!");
+                gameOver = true;
+            }
         }
 
     }
