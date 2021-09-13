@@ -49,6 +49,7 @@ namespace BattleArena
                 DisplayMainMenu();
                 GetPlayerName();
                 CharacterSelection();
+                Console.Clear();
                 Battle(ref player, ref goblin);
                 End();
             } 
@@ -287,16 +288,17 @@ namespace BattleArena
         {
             //Shows Players stats
             DisplayStats(player);
+            
             //Shows enemys stats
             DisplayStats(goblin);
-
+            
             //Character Attacks enemy
             float damageTaken = Attack(ref player, ref goblin);
-            Console.WriteLine(goblin + " has taken " + damageTaken);
+            Console.WriteLine(goblin.name + " has taken " + damageTaken);
 
             //Enemy Attacks Player
             damageTaken = Attack(ref goblin, ref player);
-            Console.WriteLine(player + " has taken " + damageTaken);
+            Console.WriteLine(player.name + " has taken " + damageTaken);
             
         }
 
