@@ -27,31 +27,20 @@ namespace BattleArena
         private Character currentEnemy;
         string name = "";
 
-        //Monsters
-        Character goblin;
-        Character muscleman;
-        Character toad;
-
-        //Player choice
-        Character tank;
-        Character hunter;
-
-        
-        
-               
-
+                                      
         /// <summary>
         /// Function that starts the main game loop
         /// </summary>
         public void Run()
         {                        
             Start();
-            DisplayMainMenu();
             while (!gameOver)
             {
                 Update();
                
-            } 
+            }
+
+            End();
         }
 
         /// <summary>
@@ -59,36 +48,23 @@ namespace BattleArena
         /// </summary>
         public void Start()
         {
-            //Character Choice 1
-            tank.name = "Tank" + (name);
-            tank.health = 50.0f;
-            tank.attackPower = 15;
-            tank.defensePower = 30;
-
-            //Character Choice 2
-            hunter.name = "Hunter" + (name);
-            hunter.health = 30.0f;
-            hunter.attackPower = 25.0f;
-            hunter.defensePower = 20.0f;
+            gameOver = false;
+            currentScene = 0;
+            currentEnemyIndex = 0;
 
             //Enemie1
-            goblin.name = "Goblin";
-            goblin.health = 10.0f;
-            goblin.attackPower = 2.0f;
-            goblin.defensePower = 5.0f;
-
+            Character goblin = new Character { name = "Goblin", health = 10.0f, attackPower = 2.0f, defensePower = 5.0f };
+            
             //Enemie2
-            muscleman.name = "Muscleman";
-            muscleman.health = 30.0f;
-            muscleman.attackPower = 15.0f;
-            muscleman.defensePower = 10.0f;
+            Character muscleman = new Character { name = "Muscleman", health = 30.0f, attackPower = 15.0f, defensePower = 10.0f };
 
             //Enemie3
-            toad.name = "Toad";
-            toad.health = 15.0f;
-            toad.attackPower = 8.0f;
-            toad.defensePower = 5.0f;
+            Character toad = new Character { name = "Toad", health = 15.0f, attackPower = 8.0f, defensePower = 5.0f };
+            
+            
+            enemies = new Character[] { goblin, muscleman, toad };
 
+            currentEnemy = enemies[currentEnemyIndex];
             
         }
         
@@ -97,12 +73,8 @@ namespace BattleArena
         /// </summary>
         public void Update()
         {
-            GetPlayerName();
-            CharacterSelection();
-            Console.Clear();
-            Battle(ref player, ref goblin);
-
-            End();
+            DisplayCurrentScene();
+            
         }
 
         /// <summary>
@@ -120,6 +92,7 @@ namespace BattleArena
             {
                 gameOver = true;
             }
+            Console.ReadKey();
         }
 
         /// <summary>
@@ -174,7 +147,22 @@ namespace BattleArena
         /// </summary>
         void DisplayCurrentScene()
         {
-            currentScene = 0;
+            switch(currentScene)
+            {
+                case 0:
+                    GetPlayerName();
+                    break;
+                case 1:
+                    CharacterSelection();
+                    break;
+                case 2:
+                    Battle();
+                    CheckBattleResults();
+                    break;
+                case 3:
+                    DisplayMainMenu();
+                    break;
+            }
         }
 
         /// <summary>
@@ -183,15 +171,19 @@ namespace BattleArena
         void DisplayMainMenu()
         {
             //Gets players Choice
-            int Input = GetInput("Welcome to fight club ", "Start Game ", "Quit Game");
+            int Input = GetInput("Play Again", "Yes ", "No");
             if (Input == 1)
             {
-                currentScene = 1;
+                currentScene = 0;
+                currentEnemyIndex = 0;
+                currentEnemy = enemies[currentEnemyIndex];
             }
-            else if (Input == 2)
+            else if(Input == 2)
             {
                 gameOver = true;
             }
+            
+            
         }
 
         /// <summary>
@@ -200,15 +192,15 @@ namespace BattleArena
         /// </summary>
         void GetPlayerName()
         {
-            currentScene = 1;
             Console.WriteLine("Welcome To FightCLub!! First Rule of fight club dont talk about fight club");
             Console.WriteLine("So whats your name? ");
-            name = Console.ReadLine();
-            Console.WriteLine(name);
+            player.name = Console.ReadLine();
+            Console.WriteLine(player.name);
+
             int Input = GetInput("Are You sure? ", "Yes ", "No");
             if (Input ==1)
             {
-                currentScene = 2;
+                currentScene++;
             }
             else if (Input ==2)
             {
@@ -221,20 +213,21 @@ namespace BattleArena
         /// the character chosen.
         /// </summary>
         public void CharacterSelection()
-        {
-            currentScene = 2;
+        {            
             int Input = GetInput("Pick a Character. ", "Tank ", "Hunter");
             if(Input == 1)
             {
-                player = tank;
-                DisplayStats(tank);
-                currentScene = 3;
+                player.health = 50.0f;
+                player.attackPower = 15.0f;
+                player.defensePower = 30.0f;
+                currentScene++;
             }
             else if (Input == 2)
             {
-                player = hunter;
-                DisplayStats(hunter);
-                currentScene = 3;
+                player.health = 30.0f;
+                player.attackPower = 25.0f;
+                player.defensePower = 20.0f;
+                currentScene++;
             }
             Console.ReadKey();
         }
@@ -259,13 +252,13 @@ namespace BattleArena
         /// <returns>The amount of damage done to the defender</returns>
         float CalculateDamage(float attackPower, float defensePower)
         {
-            float damage = attackPower - defensePower;
+            float damageTaken = attackPower - defensePower;
 
-            if (damage <= 0)
+            if (damageTaken < 0)
             {
-                damage = 0;
+                damageTaken = 0;
             }
-            return damage;
+            return damageTaken;
         }
         float CalculateDamage(Character attacker, Character defender)
         {
@@ -280,47 +273,48 @@ namespace BattleArena
         /// <returns>The amount of damage done to the defender</returns>
         public float Attack(ref Character attacker, ref Character defender)
         {
-            float damageTaken = CalculateDamage(attacker, defender);
+            float damageTaken = CalculateDamage(attacker.attackPower, defender.defensePower);
+            
             defender.health -= damageTaken;
+            
+            if(defender.health < 0)
+            {
+                defender.health = 0;
+            }
+
             return damageTaken;
         }
 
         /// <summary>
         /// Simulates one turn in the current monster fight
         /// </summary>
-        public void Battle(ref Character player, ref Character goblin)
+        public void Battle()
         {
-            string fightResult = "No Contest";
+            float damageDealt = 0;
+
+            DisplayStats(player);
+            DisplayStats(currentEnemy);
+
+            int input = GetInput("A " + currentEnemy.name + " stands in front of you! What will you do?", "Attack", "Dodge");
             
-            while(player.health > 0 && goblin.health > 0)
+            if (input == 1)
             {
-                //Shows Players stats
-                DisplayStats(player);
-
-                //Shows enemys stats
-                DisplayStats(goblin);
-
-                //Character Attacks enemy
-                float damageTaken = Attack(ref player, ref goblin);
-                Console.WriteLine(goblin.name + " has taken " + damageTaken);
-
-                //Enemy Attacks Player
-                damageTaken = Attack(ref goblin, ref player);
-                Console.WriteLine(player.name + " has taken " + damageTaken);
-
-                Console.ReadKey(true);
+                damageDealt = Attack(ref player, ref currentEnemy);
+                Console.WriteLine("You dealt " + damageDealt + " damage!");
+            }
+            else if (input == 2)
+            {
+                Console.WriteLine("You dodged the enemy's attack!");
+                Console.ReadKey();
                 Console.Clear();
+                return;
             }
 
-            if(player.health < 0 && goblin.health <= 0)
-            {
-                fightResult = "Draw";
-            }
+            damageDealt = Attack(ref currentEnemy, ref player);
+            Console.WriteLine("The " + currentEnemy.name + " dealt" + damageDealt, " damage!");
 
-            else if (player.health > 0)
-            {
-                fightResult = player.name;
-            }
+            Console.ReadKey(true);
+            Console.Clear();
         }
         /// <summary>
         /// Checks to see if either the player or the enemy has won the current battle.
@@ -328,14 +322,28 @@ namespace BattleArena
         /// </summary>
         void CheckBattleResults()
         {
-            if(goblin.health <= 0)
+            if(player.health <=0)
             {
-                Console.WriteLine("Goblin has fainted. ");
+                Console.WriteLine("You Fainted, Fight CLub Pass Revoked");
+                Console.ReadKey(true);
+                Console.Clear();
+                currentScene = 3;
             }
-            else if(player.health <= 0)
+            else if (currentEnemy.health <= 0)
             {
-                Console.WriteLine("You Fainted Club Invite revoked!!");
-                gameOver = true;
+                Console.WriteLine("You Beat " + currentEnemy.name);
+                Console.ReadKey();
+                Console.Clear();
+                currentEnemyIndex++;
+
+                if(currentEnemyIndex >= enemies.Length)
+                {
+                    currentScene = 3;
+                    Console.WriteLine("You killed everyone even Bill GOD WHY BILL WAS INCENT HE WAS GOOD. ");
+                    return;
+                }
+
+                currentEnemy = enemies[currentEnemyIndex];
             }
         }
 
