@@ -37,23 +37,27 @@ namespace BattleArena
         {
             _gameOver = false;
             _currentScene = 0;
+            InitalizeEnemies();
+        }
+        
+
+        public void InitalizeEnemies()
+        {
             _currentEnemyIndex = 0;
 
             //Enemie1
             Entity goblin = new Entity("Goblin", 10.0f, 2.0f, 5.0f);
 
             //Enemie2
-            Entity muscleman = new Entity("Muscleman", 30.0f, 15.0f, 10.0f);
+            Entity muscleman = new Entity("Muscleman", 20.0f, 15.0f, 10.0f);
 
             //Enemie3
             Entity toad = new Entity("Toad", 15.0f, 8.0f, 5.0f);
-                        
+
             _enemies = new Entity[] { goblin, muscleman, toad };
 
             _currentEnemy = _enemies[_currentEnemyIndex];
-            
         }
-        
         /// <summary>
         /// This function is called every time the game loops.
         /// </summary>
@@ -161,8 +165,7 @@ namespace BattleArena
             if (Input == 1)
             {
                 _currentScene = 0;
-                _currentEnemyIndex = 0;
-                _currentEnemy = _enemies[_currentEnemyIndex];
+                InitalizeEnemies();
             }
             else if(Input == 2)
             {
@@ -238,11 +241,11 @@ namespace BattleArena
             DisplayStats(_player);
             DisplayStats(_currentEnemy);
 
-            int input = GetInput("A " + _currentEnemy.name + " stands in front of you! What will you do?", "Attack", "Dodge");
+            int input = GetInput("A " + _currentEnemy.Name + " stands in front of you! What will you do?", "Attack", "Dodge");
             
             if (input == 1)
             {
-                damageDealt = Attack(ref _player, ref _currentEnemy);
+                damageDealt = _player.Attack(_currentEnemy);
                 Console.WriteLine("You dealt " + damageDealt + " damage!");
             }
             else if (input == 2)
@@ -253,8 +256,8 @@ namespace BattleArena
                 return;
             }
 
-            damageDealt = Attack(ref _currentEnemy, ref _player);
-            Console.WriteLine("The " + _currentEnemy.name + " dealt" + damageDealt, " damage!");
+            damageDealt = _currentEnemy.Attack(_player);
+            Console.WriteLine("The " + _currentEnemy.Name + " dealt" + damageDealt, " damage!");
 
             Console.ReadKey(true);
             Console.Clear();
@@ -265,16 +268,16 @@ namespace BattleArena
         /// </summary>
         void CheckBattleResults()
         {
-            if(_player.health <=0)
+            if(_player.Health <=0)
             {
                 Console.WriteLine("You Fainted, Fight CLub Pass Revoked");
                 Console.ReadKey(true);
                 Console.Clear();
                 _currentScene = 3;
             }
-            else if (_currentEnemy.health <= 0)
+            else if (_currentEnemy.Health <= 0)
             {
-                Console.WriteLine("You Beat " + _currentEnemy.name);
+                Console.WriteLine("You Beat " + _currentEnemy.Name);
                 Console.ReadKey();
                 Console.Clear();
                 _currentEnemyIndex++;
