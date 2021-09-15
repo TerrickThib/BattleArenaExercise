@@ -3,29 +3,16 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace BattleArena
-{
-    //Test
-
-    /// <summary>
-    /// Represents any entity that exists in game
-    /// </summary>
-    struct Character
-    {
-        public string name;
-        public float health;
-        public float attackPower;
-        public float defensePower;
-    }
-
+{   
     class Game
     {
-        bool gameOver;
-        int currentScene;
-        Character player;
-        Character[] enemies;
-        private int currentEnemyIndex = 0;
-        private Character currentEnemy;
-        string name = "";
+        private bool _gameOver;
+        private int _currentScene;
+        private Entity _player;
+        private Entity[] _enemies;
+        private int _currentEnemyIndex = 0;
+        private Entity _currentEnemy;
+        private string _playerName;
 
                                       
         /// <summary>
@@ -34,7 +21,7 @@ namespace BattleArena
         public void Run()
         {                        
             Start();
-            while (!gameOver)
+            while (!_gameOver)
             {
                 Update();
                
@@ -48,23 +35,22 @@ namespace BattleArena
         /// </summary>
         public void Start()
         {
-            gameOver = false;
-            currentScene = 0;
-            currentEnemyIndex = 0;
+            _gameOver = false;
+            _currentScene = 0;
+            _currentEnemyIndex = 0;
 
             //Enemie1
-            Character goblin = new Character { name = "Goblin", health = 10.0f, attackPower = 2.0f, defensePower = 5.0f };
-            
+            Entity goblin = new Entity("Goblin", 10.0f, 2.0f, 5.0f);
+
             //Enemie2
-            Character muscleman = new Character { name = "Muscleman", health = 30.0f, attackPower = 15.0f, defensePower = 10.0f };
+            Entity muscleman = new Entity("Muscleman", 30.0f, 15.0f, 10.0f);
 
             //Enemie3
-            Character toad = new Character { name = "Toad", health = 15.0f, attackPower = 8.0f, defensePower = 5.0f };
-            
-            
-            enemies = new Character[] { goblin, muscleman, toad };
+            Entity toad = new Entity("Toad", 15.0f, 8.0f, 5.0f);
+                        
+            _enemies = new Entity[] { goblin, muscleman, toad };
 
-            currentEnemy = enemies[currentEnemyIndex];
+            _currentEnemy = _enemies[_currentEnemyIndex];
             
         }
         
@@ -86,11 +72,11 @@ namespace BattleArena
             int Input = GetInput("Would you like to play again? ", "Yes", "No");
             if (Input ==1)
             {
-                gameOver = false;
+                _gameOver = false;
             }
             else if (Input ==2)
             {
-                gameOver = true;
+                _gameOver = true;
             }
             Console.ReadKey();
         }
@@ -147,7 +133,7 @@ namespace BattleArena
         /// </summary>
         void DisplayCurrentScene()
         {
-            switch(currentScene)
+            switch(_currentScene)
             {
                 case 0:
                     GetPlayerName();
@@ -174,13 +160,13 @@ namespace BattleArena
             int Input = GetInput("Play Again", "Yes ", "No");
             if (Input == 1)
             {
-                currentScene = 0;
-                currentEnemyIndex = 0;
-                currentEnemy = enemies[currentEnemyIndex];
+                _currentScene = 0;
+                _currentEnemyIndex = 0;
+                _currentEnemy = _enemies[_currentEnemyIndex];
             }
             else if(Input == 2)
             {
-                gameOver = true;
+                _gameOver = true;
             }
             
             
@@ -194,13 +180,13 @@ namespace BattleArena
         {
             Console.WriteLine("Welcome To FightCLub!! First Rule of fight club dont talk about fight club");
             Console.WriteLine("So whats your name? ");
-            player.name = Console.ReadLine();
-            Console.WriteLine(player.name);
+            _playerName = Console.ReadLine();
+            Console.WriteLine(_playerName);
 
             int Input = GetInput("Are You sure? ", "Yes ", "No");
             if (Input ==1)
             {
-                currentScene++;
+                _currentScene++;
             }
             else if (Input ==2)
             {
@@ -217,17 +203,13 @@ namespace BattleArena
             int Input = GetInput("Pick a Character. ", "Tank ", "Hunter");
             if(Input == 1)
             {
-                player.health = 50.0f;
-                player.attackPower = 15.0f;
-                player.defensePower = 30.0f;
-                currentScene++;
+                _player = new Entity(_playerName, 50, 15, 30);
+                _currentScene++;
             }
             else if (Input == 2)
             {
-                player.health = 30.0f;
-                player.attackPower = 25.0f;
-                player.defensePower = 20.0f;
-                currentScene++;
+                _player = new Entity(_playerName, 30, 25, 20);
+                _currentScene++;
             }
             Console.ReadKey();
         }
@@ -236,55 +218,16 @@ namespace BattleArena
         /// Prints a characters stats to the console
         /// </summary>
         /// <param name="character">The character that will have its stats shown</param>
-        void DisplayStats(Character character)
+        void DisplayStats(Entity character)
         {
-            Console.WriteLine("Name: " + character.name);
-            Console.WriteLine("Health: " + character.health);
-            Console.WriteLine("AttackPower: " + character.attackPower);
-            Console.WriteLine("DefensePower: " + character.defensePower);
+            Console.WriteLine("Name: " + character.Name);
+            Console.WriteLine("Health: " + character.Health);
+            Console.WriteLine("AttackPower: " + character.AttackPower);
+            Console.WriteLine("DefensePower: " + character.DefensePower);
+            Console.WriteLine();
         }
 
-        /// <summary>
-        /// Calculates the amount of damage that will be done to a character
-        /// </summary>
-        /// <param name="attackPower">The attacking character's attack power</param>
-        /// <param name="defensePower">The defending character's defense power</param>
-        /// <returns>The amount of damage done to the defender</returns>
-        float CalculateDamage(float attackPower, float defensePower)
-        {
-            float damageTaken = attackPower - defensePower;
-
-            if (damageTaken < 0)
-            {
-                damageTaken = 0;
-            }
-            return damageTaken;
-        }
-        float CalculateDamage(Character attacker, Character defender)
-        {
-            return attacker.attackPower - defender.defensePower;
-        }
-
-        /// <summary>
-        /// Deals damage to a character based on an attacker's attack power
-        /// </summary>
-        /// <param name="attacker">The character that initiated the attack</param>
-        /// <param name="defender">The character that is being attacked</param>
-        /// <returns>The amount of damage done to the defender</returns>
-        public float Attack(ref Character attacker, ref Character defender)
-        {
-            float damageTaken = CalculateDamage(attacker.attackPower, defender.defensePower);
-            
-            defender.health -= damageTaken;
-            
-            if(defender.health < 0)
-            {
-                defender.health = 0;
-            }
-
-            return damageTaken;
-        }
-
+       
         /// <summary>
         /// Simulates one turn in the current monster fight
         /// </summary>
@@ -292,14 +235,14 @@ namespace BattleArena
         {
             float damageDealt = 0;
 
-            DisplayStats(player);
-            DisplayStats(currentEnemy);
+            DisplayStats(_player);
+            DisplayStats(_currentEnemy);
 
-            int input = GetInput("A " + currentEnemy.name + " stands in front of you! What will you do?", "Attack", "Dodge");
+            int input = GetInput("A " + _currentEnemy.name + " stands in front of you! What will you do?", "Attack", "Dodge");
             
             if (input == 1)
             {
-                damageDealt = Attack(ref player, ref currentEnemy);
+                damageDealt = Attack(ref _player, ref _currentEnemy);
                 Console.WriteLine("You dealt " + damageDealt + " damage!");
             }
             else if (input == 2)
@@ -310,8 +253,8 @@ namespace BattleArena
                 return;
             }
 
-            damageDealt = Attack(ref currentEnemy, ref player);
-            Console.WriteLine("The " + currentEnemy.name + " dealt" + damageDealt, " damage!");
+            damageDealt = Attack(ref _currentEnemy, ref _player);
+            Console.WriteLine("The " + _currentEnemy.name + " dealt" + damageDealt, " damage!");
 
             Console.ReadKey(true);
             Console.Clear();
@@ -322,28 +265,28 @@ namespace BattleArena
         /// </summary>
         void CheckBattleResults()
         {
-            if(player.health <=0)
+            if(_player.health <=0)
             {
                 Console.WriteLine("You Fainted, Fight CLub Pass Revoked");
                 Console.ReadKey(true);
                 Console.Clear();
-                currentScene = 3;
+                _currentScene = 3;
             }
-            else if (currentEnemy.health <= 0)
+            else if (_currentEnemy.health <= 0)
             {
-                Console.WriteLine("You Beat " + currentEnemy.name);
+                Console.WriteLine("You Beat " + _currentEnemy.name);
                 Console.ReadKey();
                 Console.Clear();
-                currentEnemyIndex++;
+                _currentEnemyIndex++;
 
-                if(currentEnemyIndex >= enemies.Length)
+                if(_currentEnemyIndex >= _enemies.Length)
                 {
-                    currentScene = 3;
+                    _currentScene = 3;
                     Console.WriteLine("You killed everyone even Bill GOD WHY BILL WAS INCENT HE WAS GOOD. ");
                     return;
                 }
 
-                currentEnemy = enemies[currentEnemyIndex];
+                _currentEnemy = _enemies[_currentEnemyIndex];
             }
         }
 
