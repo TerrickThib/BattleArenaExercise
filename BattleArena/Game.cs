@@ -7,37 +7,23 @@ namespace BattleArena
     /// <summary>
     /// Represents any entity that exists in game
     /// </summary>
-    struct Character
-    {
-        public string name;
-        public float health;
-        public float attackPower;
-        public float defensePower;
-    }
+   
 
     class Game
     {
         bool gameOver;
         int currentScene;
-        Character player;
-        Character[] enemies;
+        private Entity player;
+        private Entity[] enemies;
         private int currentEnemyIndex = 0;
-        private Character currentEnemy;
+        private Entity currentEnemy;
         string name = "";
 
         //Monsters
-        Character goblin;
-        Character muscleman;
-        Character toad;
-
-        //Player choice
-        Character tank;
-        Character hunter;
-
-        
-        
-               
-
+        Entity goblin;
+        Entity muscleman;
+        Entity toad;
+                                              
         /// <summary>
         /// Function that starts the main game loop
         /// </summary>
@@ -57,37 +43,18 @@ namespace BattleArena
         /// </summary>
         public void Start()
         {
-            //Character Choice 1
-            tank.name = "Tank" + (name);
-            tank.health = 50.0f;
-            tank.attackPower = 15;
-            tank.defensePower = 30;
-
-            //Character Choice 2
-            hunter.name = "Hunter" + (name);
-            hunter.health = 30.0f;
-            hunter.attackPower = 25.0f;
-            hunter.defensePower = 20.0f;
 
             //Enemie1
-            goblin.name = "Goblin";
-            goblin.health = 10.0f;
-            goblin.attackPower = 2.0f;
-            goblin.defensePower = 5.0f;
+            Entity goblin = new Entity("Goblin", 10, 2, 5);
 
             //Enemie2
-            muscleman.name = "Muscleman";
-            muscleman.health = 30.0f;
-            muscleman.attackPower = 15.0f;
-            muscleman.defensePower = 10.0f;
+            Entity muscleman = new Entity("Muscleman", 30, 15, 10);
 
             //Enemie3
-            toad.name = "Toad";
-            toad.health = 15.0f;
-            toad.attackPower = 8.0f;
-            toad.defensePower = 5.0f;
+            Entity toad = new Entity("Toad", 15, 8, 5);
 
-            
+            enemies = new Entity[] { goblin, muscleman, toad };
+                       
         }
         
         /// <summary>
@@ -172,7 +139,22 @@ namespace BattleArena
         /// </summary>
         void DisplayCurrentScene()
         {
-            currentScene = 0;
+            switch(currentScene)
+            {
+                case 0:
+                    GetPlayerName();
+                    break;
+                case 1:
+                    CharacterSelection();
+                    break;
+                case 2:
+                    Battle();
+                    CheckBattleResults();
+                    break;
+                case 3:
+                    DisplayMainMenu();
+                    break;
+            }
         }
 
         /// <summary>
@@ -224,15 +206,17 @@ namespace BattleArena
             int Input = GetInput("Pick a Character. ", "Tank ", "Hunter");
             if(Input == 1)
             {
-                player = tank;
-                DisplayStats(tank);
-                currentScene = 3;
+                player.Name = name;
+                player.Health = 50;
+                player.attackPower = 15;
+                player.defensePower = 30;
             }
             else if (Input == 2)
             {
-                player = hunter;
-                DisplayStats(hunter);
-                currentScene = 3;
+                player.name = name;
+                player.health = 30;
+                player.attackPower = 25;
+                player.defensePower = 20;
             }
             Console.ReadKey();
         }
@@ -241,12 +225,13 @@ namespace BattleArena
         /// Prints a characters stats to the console
         /// </summary>
         /// <param name="character">The character that will have its stats shown</param>
-        void DisplayStats(Character character)
+        void DisplayStats(Entity character)
         {
-            Console.WriteLine("Name: " + character.name);
-            Console.WriteLine("Health: " + character.health);
-            Console.WriteLine("AttackPower: " + character.attackPower);
-            Console.WriteLine("DefensePower: " + character.defensePower);
+            Console.WriteLine("Name: " + character.Name);
+            Console.WriteLine("Health: " + character.Health);
+            Console.WriteLine("AttackPower: " + character.AttackPower);
+            Console.WriteLine("DefensePower: " + character.DefensePower);
+            Console.WriteLine();
         }
 
         /// <summary>
@@ -265,7 +250,7 @@ namespace BattleArena
             }
             return damage;
         }
-        float CalculateDamage(Character attacker, Character defender)
+        float CalculateDamage(Entity attacker, Entity defender)
         {
             return attacker.attackPower - defender.defensePower;
         }
@@ -276,7 +261,7 @@ namespace BattleArena
         /// <param name="attacker">The character that initiated the attack</param>
         /// <param name="defender">The character that is being attacked</param>
         /// <returns>The amount of damage done to the defender</returns>
-        public float Attack(ref Character attacker, ref Character defender)
+        public float Attack(ref Entity attacker, ref Entity defender)
         {
             float damageTaken = CalculateDamage(attacker, defender);
             defender.health -= damageTaken;
@@ -286,7 +271,7 @@ namespace BattleArena
         /// <summary>
         /// Simulates one turn in the current monster fight
         /// </summary>
-        public void Battle(ref Character player, ref Character goblin)
+        public void Battle(ref Entity player, ref Entity goblin)
         {
             string fightResult = "No Contest";
             
