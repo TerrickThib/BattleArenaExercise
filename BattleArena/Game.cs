@@ -4,16 +4,22 @@ using System.Text;
 
 namespace BattleArena
 {   
+    public struct Item
+    {
+        public string Name;
+        public float StatBoost;
+    }
     class Game
     {
         private bool _gameOver;
         private int _currentScene;
-        private Entity _player;
+        private Player _player;
         private Entity[] _enemies;
         private int _currentEnemyIndex = 0;
         private Entity _currentEnemy;
         private string _playerName;
-
+        private Item[] _tankItems;
+        private Item[] _hunterItems;
                                       
         /// <summary>
         /// Function that starts the main game loop
@@ -38,6 +44,22 @@ namespace BattleArena
             _gameOver = false;
             _currentScene = 0;
             InitalizeEnemies();
+            InitalizeItems();
+        }
+
+        public void InitalizeItems()
+        {
+            //Tank Items
+            Item bigStick = new Item { Name = "Big Stick", StatBoost = 5 };
+            Item bigShield = new Item { Name = "Big Shield", StatBoost = 15 };
+
+            //Hunter Items
+            Item bow = new Item { Name = "Bow", StatBoost = 1025 };
+            Item boots = new Item { Name = "Boots", StatBoost = 9000.05f };
+
+            //Initialize arrays
+            _tankItems = new Item[] { bigStick, bigShield };
+            _hunterItems = new Item[] { bow, boots };
         }
         
 
@@ -92,44 +114,39 @@ namespace BattleArena
         /// <param name="option1">The first option the player can choose</param>
         /// <param name="option2">The second option the player can choose</param>
         /// <returns></returns>
-        int GetInput(string description, string option1, string option2)
+        int GetInput(string description, params string[] options)
         {
             string input = "";
-            int inputReceived = 0;
+            int inputReceived = -1;
 
-            while (inputReceived != 1 && inputReceived != 2)
-            {//Print options
+           while (inputReceived == -1)
+            {
+                //Print options
                 Console.WriteLine(description);
-                Console.WriteLine("1. " + option1);
-                Console.WriteLine("2. " + option2);
+                for (int i = 0; i < options.Length; i++)
+                {
+                    Console.WriteLine((i + 1) + ". " + options[i]);
+                }
                 Console.Write("> ");
 
                 //Get input from player
                 input = Console.ReadLine();
 
-                //If player selected the first option...
-                if (input == "1" || input == option1)
+                //If the player typed an int...
+                if (int.TryParse(input, out inputReceived))
                 {
-                    //Set input received to be the first option
-                    inputReceived = 1;
+                    //...decrement the input and check if it's within the bounds of the array
+                    inputReceived--;
+                    if (inputReceived < 0 || inputReceived >= options.Length)
+                    {
+                        //Set input received to be the default value
+                        inputReceived = -1;
+                        //Display error message
+                        Console.WriteLine("Invalid Input");
+                        Console.ReadKey(true);
+                    }
                 }
-                //Otherwise if the player selected the second option...
-                else if (input == "2" || input == option2)
-                {
-                    //Set input received to be the second option
-                    inputReceived = 2;
-                }
-                //If neither are true...
-                else
-                {
-                    //...display error message
-                    Console.WriteLine("Invalid Input");
-                    Console.ReadKey();
-                }
-
-                Console.Clear();
             }
-            return inputReceived;
         }
 
         /// <summary>
@@ -206,12 +223,12 @@ namespace BattleArena
             int Input = GetInput("Pick a Character. ", "Tank ", "Hunter");
             if(Input == 1)
             {
-                _player = new Entity(_playerName, 50, 15, 30);
+                _player = new Player(_playerName, 50, 15, 30, _tankItems);
                 _currentScene++;
             }
             else if (Input == 2)
             {
-                _player = new Entity(_playerName, 30, 25, 20);
+                _player = new Player(_playerName, 30, 25, 20, _hunterItems);
                 _currentScene++;
             }
             Console.ReadKey();
@@ -241,7 +258,7 @@ namespace BattleArena
             DisplayStats(_player);
             DisplayStats(_currentEnemy);
 
-            int input = GetInput("A " + _currentEnemy.Name + " stands in front of you! What will you do?", "Attack", "Dodge");
+            int input = GetInput("A " + _currentEnemy.Name + " stands in front of you! What will you do?", "Attack", "Equip Item");
             
             if (input == 1)
             {
