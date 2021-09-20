@@ -4,10 +4,18 @@ using System.Text;
 
 namespace BattleArena
 {   
+
+    public enum ItemType
+    {
+        DEFENSE, 
+        ATTACK,
+        NONE
+    }
     public struct Item
     {
         public string Name;
         public float StatBoost;
+        public ItemType Type;
     }
     class Game
     {
@@ -20,12 +28,33 @@ namespace BattleArena
         private string _playerName;
         private Item[] _tankItems;
         private Item[] _hunterItems;
+
+        int[] AppendToArray(int[]arr, int value)
+        {
+            //Creat a new array with one more slot than the old array
+            int[] newArray = new int[arr.Length + 1];
+
+            //Copy the values from the old array into the new array
+            for (int i = 0; i < arr.Length; i++)
+            {
+                newArray[i] = arr[i];
+            }
+
+            //Set the last index to be the new item
+            newArray[newArray.Length - 1] = value;
+
+            //REturn the new array
+            return newArray;
+        }
                                       
         /// <summary>
         /// Function that starts the main game loop
         /// </summary>
         public void Run()
-        {                        
+        {
+            int[] numbers = new int[] { 1, 2, 3, 4 };
+
+            numbers = AppendToArray(numbers, 5);
             Start();
             while (!_gameOver)
             {
@@ -50,12 +79,12 @@ namespace BattleArena
         public void InitalizeItems()
         {
             //Tank Items
-            Item bigStick = new Item { Name = "Big Stick", StatBoost = 5 };
-            Item bigShield = new Item { Name = "Big Shield", StatBoost = 15 };
+            Item bigStick = new Item { Name = "Big Stick", StatBoost = 5, ItemType = 1 };
+            Item bigShield = new Item { Name = "Big Shield", StatBoost = 15, ItemType = 0 };
 
             //Hunter Items
-            Item bow = new Item { Name = "Bow", StatBoost = 1025 };
-            Item boots = new Item { Name = "Boots", StatBoost = 9000.05f };
+            Item bow = new Item { Name = "Bow", StatBoost = 10, ItemType = 1 };
+            Item boots = new Item { Name = "Boots", StatBoost = 90, ItemType = 0 };
 
             //Initialize arrays
             _tankItems = new Item[] { bigStick, bigShield };
@@ -96,11 +125,11 @@ namespace BattleArena
         {
             //Ask if you want to play again or end game.
             int Input = GetInput("Would you like to play again? ", "Yes", "No");
-            if (Input ==1)
+            if (Input ==0)
             {
                 _gameOver = false;
             }
-            else if (Input ==2)
+            else if (Input ==1)
             {
                 _gameOver = true;
             }
@@ -121,11 +150,11 @@ namespace BattleArena
 
            while (inputReceived == -1)
             {
-                //Print options
+                //Print all of are options
                 Console.WriteLine(description);
                 for (int i = 0; i < options.Length; i++)
                 {
-                    Console.WriteLine((i + 1) + ". " + options[i]);
+                    Console.WriteLine((i + 1) + ". " + options[i]);                    
                 }
                 Console.Write("> ");
 
@@ -135,7 +164,7 @@ namespace BattleArena
                 //If the player typed an int...
                 if (int.TryParse(input, out inputReceived))
                 {
-                    //...decrement the input and check if it's within the bounds of the array
+                    //...decrement the input and check if it's within the bounds of the array if they choose 1 they atwally choose 0 in the array
                     inputReceived--;
                     if (inputReceived < 0 || inputReceived >= options.Length)
                     {
@@ -145,8 +174,20 @@ namespace BattleArena
                         Console.WriteLine("Invalid Input");
                         Console.ReadKey(true);
                     }
+                }  
+                //If the player didn't type an int
+                else
+                {
+                    //Set input received to be the default value
+                    inputReceived = -1;
+                    Console.WriteLine("Invalid Input");
+                    Console.ReadKey(true);
                 }
+
+                Console.Clear();
             }
+
+            return inputReceived;
         }
 
         /// <summary>
@@ -179,12 +220,13 @@ namespace BattleArena
         {
             //Gets players Choice
             int Input = GetInput("Play Again", "Yes ", "No");
-            if (Input == 1)
+
+            if (Input == 0)
             {
                 _currentScene = 0;
                 InitalizeEnemies();
             }
-            else if(Input == 2)
+            else if(Input == 1)
             {
                 _gameOver = true;
             }
@@ -201,14 +243,15 @@ namespace BattleArena
             Console.WriteLine("Welcome To FightCLub!! First Rule of fight club dont talk about fight club");
             Console.WriteLine("So whats your name? ");
             _playerName = Console.ReadLine();
+            Console.Clear();
             Console.WriteLine(_playerName);
 
             int Input = GetInput("Are You sure? ", "Yes ", "No");
-            if (Input ==1)
+            if (Input ==0)
             {
                 _currentScene++;
             }
-            else if (Input ==2)
+            else if (Input ==1)
             {
                 GetPlayerName();
             }
@@ -221,12 +264,12 @@ namespace BattleArena
         public void CharacterSelection()
         {            
             int Input = GetInput("Pick a Character. ", "Tank ", "Hunter");
-            if(Input == 1)
+            if(Input == 0)
             {
                 _player = new Player(_playerName, 50, 15, 30, _tankItems);
                 _currentScene++;
             }
-            else if (Input == 2)
+            else if (Input == 1)
             {
                 _player = new Player(_playerName, 30, 25, 20, _hunterItems);
                 _currentScene++;
@@ -247,6 +290,18 @@ namespace BattleArena
             Console.WriteLine();
         }
 
+        public void DisplayEquipItemMenu()
+        {
+            //Gets item index
+            int choice = GetInput("Select an item to equip.", _player.GetItemNames());
+
+            //Equips item at given index
+            if (!_player.TryEquipItem(choice))
+                Console.WriteLine("You couldn't find that item in your bag.");
+
+            //Prints feedback
+            Console.WriteLine("You equipped " + _player.CurrentItem.Name + "!");
+        }
        
         /// <summary>
         /// Simulates one turn in the current monster fight
@@ -258,16 +313,16 @@ namespace BattleArena
             DisplayStats(_player);
             DisplayStats(_currentEnemy);
 
-            int input = GetInput("A " + _currentEnemy.Name + " stands in front of you! What will you do?", "Attack", "Equip Item");
+            int input = GetInput("A " + _currentEnemy.Name + " stands in front of you! What will you do?", "Attack", "Equip Item", "Remove current item");
             
-            if (input == 1)
+            if (input == 0)
             {
                 damageDealt = _player.Attack(_currentEnemy);
                 Console.WriteLine("You dealt " + damageDealt + " damage!");
             }
-            else if (input == 2)
+            else if (input == 1)
             {
-                Console.WriteLine("You dodged the enemy's attack!");
+                DisplayEquipItemMenu();
                 Console.ReadKey();
                 Console.Clear();
                 return;
@@ -308,7 +363,6 @@ namespace BattleArena
 
                 _currentEnemy = _enemies[_currentEnemyIndex];
             }
-        }
-
+        }        
     }
 }
