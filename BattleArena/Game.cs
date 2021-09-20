@@ -12,16 +12,26 @@ namespace BattleArena
         ATTACK,
         NONE
     }
+
+    public enum Scene
+    {
+        STARTMENU,
+        NAMECREATION,
+        CHARACTERSELECTION,
+        BATTLE,
+        RESTARTMENU
+
+    }
     public struct Item
     {
         public string Name;
         public float StatBoost;
-        public ItemType Type;
+        public ItemType Type;        
     }
     class Game
     {
         private bool _gameOver;
-        private int _currentScene;
+        private Scene _currentScene;
         private Player _player;
         private Entity[] _enemies;
         private int _currentEnemyIndex = 0;
@@ -144,6 +154,52 @@ namespace BattleArena
             writer.Close();
         }
 
+        public bool Load()
+        {
+            //If File Doesnot exist...
+            if (!File.Exists("SaveData.txt"))
+                //return false
+                return false;
+
+            //Create a new reader to read from the text file
+            StreamReader reader = new StreamReader("SaveData.txt");
+
+            //If the first line can't be converted into an integer...
+            if (!int.TryParse(reader.ReadLine(), out _currentEnemyIndex))
+                //return false
+                return false;
+
+            //Load player job
+            string job = reader.ReadLine();
+
+            //Assign player his job
+            if (job == "Tank")
+                _player = new Player(_tankItems);
+            else if (job == "Hunter")
+                _player = new Player(_hunterItems);
+            else
+                return false;
+
+            _player.Job = job;
+
+            //Create a new instance and try to load the player
+            if (!_player.Load(reader))
+                return false;
+
+            //Create a new instance and try to load the enemy
+            _currentEnemy = new Entity();
+            if (!_currentEnemy.Load(reader))
+                return false;
+
+            //Update the array to match the current enemy stats
+            _enemies[_currentEnemyIndex] = _currentEnemy;
+
+            _currentScene = Scene.BATTLE;
+            //Close the reader once loading is finished
+            reader.Close();
+
+            return true;
+        }
         /// <summary>
         /// Gets an input from the player based on some given decision
         /// </summary>
@@ -205,17 +261,20 @@ namespace BattleArena
         {
             switch(_currentScene)
             {
-                case 0:
+                case Scene.STARTMENU:
+                    DisplayStartMenu();
+                    break;
+                case Scene.NAMECREATION:
                     GetPlayerName();
                     break;
-                case 1:
+                case Scene.CHARACTERSELECTION:
                     CharacterSelection();
                     break;
-                case 2:
+                case Scene.BATTLE:
                     Battle();
                     CheckBattleResults();
                     break;
-                case 3:
+                case Scene.RESTARTMENU:
                     DisplayMainMenu();
                     break;
             }
@@ -240,6 +299,25 @@ namespace BattleArena
             }
             
             
+        }
+
+        public void DisplayStartMenu()
+        {
+            int choice = GetInput("Welcome to Battle Arena!", "Start New Game", "Load Game");
+
+            if (choice == 0)
+            {
+                _currentScene = Scene.NAMECREATION;
+            }
+            else if (choice == 1)
+            {
+                if(Load())
+                {
+                    Console.WriteLine("Load Successful!");
+                    Console.ReadKey(true);
+                    Console.Clear();
+                }
+            }
         }
 
         /// <summary>
@@ -274,12 +352,12 @@ namespace BattleArena
             int Input = GetInput("Pick a Character. ", "Tank ", "Hunter");
             if(Input == 0)
             {
-                _player = new Player(_playerName, 50, 15, 30, _tankItems);
+                _player = new Player(_playerName, 50, 15, 30, _tankItems, "Tank");
                 _currentScene++;
             }
             else if (Input == 1)
             {
-                _player = new Player(_playerName, 30, 25, 20, _hunterItems);
+                _player = new Player(_playerName, 30, 25, 20, _hunterItems, "Knight");
                 _currentScene++;
             }
             Console.ReadKey();
@@ -372,7 +450,7 @@ namespace BattleArena
                 Console.WriteLine("You Fainted, Fight CLub Pass Revoked");
                 Console.ReadKey(true);
                 Console.Clear();
-                _currentScene = 3;
+                _currentScene++;
             }
             else if (_currentEnemy.Health <= 0)
             {
@@ -383,7 +461,7 @@ namespace BattleArena
 
                 if(_currentEnemyIndex >= _enemies.Length)
                 {
-                    _currentScene = 3;
+                    _currentScene++;
                     Console.WriteLine("You killed everyone even Bill GOD WHY BILL WAS INCENT HE WAS GOOD. ");
                     return;
                 }
